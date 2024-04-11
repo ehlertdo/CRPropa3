@@ -35,14 +35,25 @@ namespace crpropa {
 
 		// the other half leap frog step in the position
 		pos += dir * step / 2.;
+
+		// advection ----------
+
+		// velocity of advection field [m/s]
+		Vector3d vWind = getAdvFieldAtPosition(pos);
+		// multiply time step with advection velocity [m/s]
+		// dir += (vWind * m / kpc );// * step / c_light;
+		pos += step / c_light * vWind;
+
+
 		return Y(pos, dir);
 	}
 
 
 	// with a fixed step size
-	PropagationBP::PropagationBP(ref_ptr<MagneticField> field, double fixedStep) :
+	PropagationBP::PropagationBP(ref_ptr<MagneticField> field, ref_ptr<AdvectionField> advField, double fixedStep) :
 			minStep(0) {
 		setField(field);
+		setAdvField(advField);
 		setTolerance(0.42);
 		setMaximumStep(fixedStep);
 		setMinimumStep(fixedStep);
@@ -50,9 +61,10 @@ namespace crpropa {
 
 
 	// with adaptive step size
-	PropagationBP::PropagationBP(ref_ptr<MagneticField> field, double tolerance, double minStep, double maxStep) :
+	PropagationBP::PropagationBP(ref_ptr<MagneticField> field, ref_ptr<AdvectionField> advField, double tolerance, double minStep, double maxStep) :
 			minStep(0) {
 		setField(field);
+		setAdvField(advField);
 		setTolerance(tolerance);
 		setMaximumStep(maxStep);
 		setMinimumStep(minStep);
@@ -134,6 +146,16 @@ namespace crpropa {
 	}
 
 
+	void PropagationBP::setAdvField(ref_ptr<AdvectionField> f) {
+		advField = f;
+	}
+
+
+	ref_ptr<AdvectionField> PropagationBP::getAdvField() const {
+		return advField;
+	}
+
+
 	Vector3d PropagationBP::getFieldAtPosition(Vector3d pos, double z) const {
 		Vector3d B(0, 0, 0);
 		try {
@@ -146,6 +168,22 @@ namespace crpropa {
 					<< e.what();
 		}	
 		return B;
+	}
+
+
+	Vector3d PropagationBP::getAdvFieldAtPosition(Vector3d pos) const {
+		Vector3d vWind(0, 0, 0);
+		try {
+			// check if field is valid and use the field vector at the
+			// position pos with the redshift z
+			if (field.valid())
+				// wind velocity (3D vector) at pos [m / s]
+				vWind = advField->getField(pos);
+		} catch (std::exception &e) {
+			KISS_LOG_ERROR 	<< "PropagationBP: Exception in PropagationBP::getAdvFieldAtPosition.\n"
+					<< e.what();
+		}	
+		return vWind;
 	}
 
 

@@ -4,6 +4,7 @@
 #include "crpropa/Module.h"
 #include "crpropa/Units.h"
 #include "crpropa/magneticField/MagneticField.h"
+#include "crpropa/advectionField/AdvectionField.h"
 #include "kiss/logger.h"
 
 namespace crpropa {
@@ -54,6 +55,7 @@ public:
 
 private:
 	ref_ptr<MagneticField> field;
+	ref_ptr<AdvectionField> advField;
 	double tolerance; /** target relative error of the numerical integration */
 	double minStep; /** minimum step size of the propagation */
 	double maxStep; /** maximum step size of the propagation */
@@ -63,7 +65,7 @@ public:
 	 * @param field
 	 * @param fixedStep 
 	 */
-	PropagationBP(ref_ptr<MagneticField> field = NULL, double fixedStep = 1. * kpc);
+	PropagationBP(ref_ptr<MagneticField> field = NULL, ref_ptr<AdvectionField> AdvField = NULL, double fixedStep = 1. * kpc);
 
 	/** Constructor for the adaptive Boris push.
 	 * @param field
@@ -71,7 +73,7 @@ public:
 	 * @param minStep	   minStep/c_light is the minimum integration time step
 	 * @param maxStep	   maxStep/c_light is the maximum integration time step. 
 	 */
-    PropagationBP(ref_ptr<MagneticField> field, double tolerance, double minStep, double maxStep);
+    PropagationBP(ref_ptr<MagneticField> field, ref_ptr<AdvectionField> AdvField, double tolerance, double minStep, double maxStep);
 
 	/** Propagates the particle. Is called once per iteration.
 	 * @param candidate	 The Candidate is a passive object, that holds the information about the state of the cosmic ray and the simulation itself. */
@@ -103,6 +105,12 @@ public:
 	 */
 	Vector3d getFieldAtPosition(Vector3d pos, double z) const;
 
+	/** Get advection field velocity at current candidate position
+	 * @param pos   current position of the candidate
+	 * @return	  advection velocity vector at the position pos 
+	 */
+	Vector3d getAdvFieldAtPosition(Vector3d pos) const;
+
 	/** Adapt step size if required and calculates the new position and direction of the particle with the usage of the function dY
 	 * @param y		 current position and direction of candidate
 	 * @param out	   position and direction of candidate after the step
@@ -121,6 +129,10 @@ public:
 	 * @param field	 specific magnetic field 
 	 */
 	void setField(ref_ptr<MagneticField> field);
+	/** Set a specific advection field
+	 * @param advField	 specific advection field 
+	 */
+	void setAdvField(ref_ptr<AdvectionField> advField);
 	/** Set a specific tolerance for the step size adaption
 	 * @param tolerance	 tolerance is criterion for step adjustment. Step adjustment takes place only if minStep < maxStep. 
 	 */
@@ -137,6 +149,7 @@ public:
 	/** Get functions for the parameters of the class PropagationBP, similar to the set functions */
 
 	ref_ptr<MagneticField> getField() const;
+	ref_ptr<AdvectionField> getAdvField() const;
 	double getTolerance() const;
 	double getMinimumStep() const;
 	double getMaximumStep() const;

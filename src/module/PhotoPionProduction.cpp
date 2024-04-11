@@ -190,6 +190,21 @@ void PhotoPionProduction::process(Candidate *candidate) const {
 			}
 		}
 
+		// radial dependence of the photon field
+		if (photonField->hasScaleRadius()) {
+			double outerRadius = photonField->getOuterRadius();
+			Vector3d pos = candidate->current.getPosition();
+			double R = pos.getR();
+			double pos_scale;
+			if (outerRadius > R) {
+				pos_scale = 1;
+			} else {
+				pos_scale = std::pow(outerRadius / R, 2);
+			}
+			totalRate *= pos_scale;
+		}
+		
+
 		// check if interaction does not happen
 		if (step < randDistance) {
 			if (totalRate > 0.)

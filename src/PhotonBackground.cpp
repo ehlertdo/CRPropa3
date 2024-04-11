@@ -11,9 +11,11 @@
 
 namespace crpropa {
 
-TabularPhotonField::TabularPhotonField(std::string fieldName, bool isRedshiftDependent) {
+TabularPhotonField::TabularPhotonField(std::string fieldName, bool isRedshiftDependent, bool applyScaleRadius, double outerRadius) {
 	this->fieldName = fieldName;
 	this->isRedshiftDependent = isRedshiftDependent;
+	this->applyScaleRadius = applyScaleRadius;
+	this->outerRadius = outerRadius;
 
 	readPhotonEnergy(getDataPath("") + "Scaling/" + this->fieldName + "_photonEnergy.txt");
 	readPhotonDensity(getDataPath("") + "Scaling/" + this->fieldName + "_photonDensity.txt");
@@ -24,6 +26,18 @@ TabularPhotonField::TabularPhotonField(std::string fieldName, bool isRedshiftDep
 
 	if (this->isRedshiftDependent)
 		initRedshiftScaling();
+}
+
+
+bool TabularPhotonField::hasScaleRadius() const {
+	// return outer radius of the strcuture emitting the photon field
+	return this->applyScaleRadius;
+}
+
+
+double TabularPhotonField::getOuterRadius() const {
+	// return outer radius of the strcuture emitting the photon field
+	return this->outerRadius;
 }
 
 

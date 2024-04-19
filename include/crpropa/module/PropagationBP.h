@@ -59,13 +59,14 @@ private:
 	double tolerance; /** target relative error of the numerical integration */
 	double minStep; /** minimum step size of the propagation */
 	double maxStep; /** maximum step size of the propagation */
+	double shockRadius; /** radius of the shock in the outflow */
 
 public:
 	/** Default constructor for the Boris push. It is constructed with a fixed step size.
 	 * @param field
 	 * @param fixedStep 
 	 */
-	PropagationBP(ref_ptr<MagneticField> field = NULL, ref_ptr<AdvectionField> AdvField = NULL, double fixedStep = 1. * kpc);
+	PropagationBP(ref_ptr<MagneticField> field = NULL, ref_ptr<AdvectionField> AdvField = NULL, double fixedStep = 1. * kpc, double shockRadius = 1. * pc);
 
 	/** Constructor for the adaptive Boris push.
 	 * @param field
@@ -73,7 +74,7 @@ public:
 	 * @param minStep	   minStep/c_light is the minimum integration time step
 	 * @param maxStep	   maxStep/c_light is the maximum integration time step. 
 	 */
-    PropagationBP(ref_ptr<MagneticField> field, ref_ptr<AdvectionField> AdvField, double tolerance, double minStep, double maxStep);
+    PropagationBP(ref_ptr<MagneticField> field, ref_ptr<AdvectionField> AdvField, double tolerance, double minStep, double maxStep, double shockRadius = 1. * pc);
 
 	/** Propagates the particle. Is called once per iteration.
 	 * @param candidate	 The Candidate is a passive object, that holds the information about the state of the cosmic ray and the simulation itself. */
@@ -145,6 +146,10 @@ public:
 	 * @param maxStep	   maxStep/c_light is the maximum integration time step 
 	 */
 	void setMaximumStep(double maxStep);
+	/** Set the radius of the shock where the mangetic field and advection field are modified
+	 * @param shockRadius [pc]
+	 */
+	void setShockRadius(double shockRadius);
 
 	/** Get functions for the parameters of the class PropagationBP, similar to the set functions */
 
@@ -153,6 +158,7 @@ public:
 	double getTolerance() const;
 	double getMinimumStep() const;
 	double getMaximumStep() const;
+	double getShockRadius() const;
 	std::string getDescription() const;
 };
 /** @}*/

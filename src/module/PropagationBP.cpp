@@ -40,22 +40,24 @@ namespace crpropa {
 
 
 	// with a fixed step size
-	PropagationBP::PropagationBP(ref_ptr<MagneticField> field, double fixedStep) :
+	PropagationBP::PropagationBP(ref_ptr<MagneticField> field, double fixedStep, double shockRadius) :
 			minStep(0) {
 		setField(field);
 		setTolerance(0.42);
 		setMaximumStep(fixedStep);
 		setMinimumStep(fixedStep);
+		setShockRadius(shockRadius);
 	}
 
 
 	// with adaptive step size
-	PropagationBP::PropagationBP(ref_ptr<MagneticField> field, double tolerance, double minStep, double maxStep) :
+	PropagationBP::PropagationBP(ref_ptr<MagneticField> field, double tolerance, double minStep, double maxStep, double shockRadius) :
 			minStep(0) {
 		setField(field);
 		setTolerance(tolerance);
 		setMaximumStep(maxStep);
 		setMinimumStep(minStep);
+		setShockRadius(shockRadius);
 	}
 
 
@@ -141,6 +143,19 @@ namespace crpropa {
 			// position pos with the redshift z
 			if (field.valid())
 				B = field->getField(pos, z);
+
+				// radial dependence of the magnetic field
+				double shockRadius = getShockRadius();
+				double R = pos.getR();
+				double pos_scale = shockRadius / R;
+				// B denotes the magnetic field just downstream of the shock
+				// was amplified by sqrt(11) at the shock
+				// -> upstream field weaker by 1 / sqrt(11)
+				if (shockRadius > R)
+					pos_scale /= std::sqrt(11);
+				B *= pos_scale;
+				// std::cout << shockRadius / pc << " | " << R / pc << " | " << pos_scale << " | " << B << std::endl;
+
 		} catch (std::exception &e) {
 			KISS_LOG_ERROR 	<< "PropagationBP: Exception in PropagationBP::getFieldAtPosition.\n"
 					<< e.what();
@@ -183,6 +198,11 @@ namespace crpropa {
 	}
 
 
+	void PropagationBP::setShockRadius(double radius) {
+		shockRadius = radius;
+	}
+
+
 	double PropagationBP::getTolerance() const {
 		return tolerance;
 	}
@@ -195,6 +215,10 @@ namespace crpropa {
 
 	double PropagationBP::getMaximumStep() const {
 		return maxStep;
+	}
+
+	double PropagationBP::getShockRadius() const {
+		return shockRadius;
 	}
 
 

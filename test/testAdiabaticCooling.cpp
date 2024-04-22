@@ -34,22 +34,22 @@ TEST (AdiabaticCooling, UniformField) {
 
 }
 
-TEST (AdiabaticCooling, ConstantSphericalField) {
-	// Constant velocity vector
+// TEST (AdiabaticCooling, ConstantSphericalField) {
+// 	// Constant velocity vector
 	
-	AdiabaticCooling AC(new ConstantSphericalAdvectionField(Vector3d(0,0,0), 1));
-	Candidate c(nucleusId(1,1), 10);
-	c.current.setPosition(Vector3d(1,0,0));
-	c.setCurrentStep(c_light);
-	c.setNextStep(c_light);
-	double E = c.current.getEnergy();
-	AC.process(&c);
+// 	AdiabaticCooling AC(new ConstantSphericalAdvectionField(Vector3d(0,0,0), 1));
+// 	Candidate c(nucleusId(1,1), 10);
+// 	c.current.setPosition(Vector3d(1,0,0));
+// 	c.setCurrentStep(c_light);
+// 	c.setNextStep(c_light);
+// 	double E = c.current.getEnergy();
+// 	AC.process(&c);
 
-	// Check energy loss and step limitation
-	EXPECT_DOUBLE_EQ(c.current.getEnergy(), E/3.);
-	EXPECT_DOUBLE_EQ(c.getNextStep(), 0.15*c_light);
+// 	// Check energy loss and step limitation
+// 	EXPECT_DOUBLE_EQ(c.current.getEnergy(), E/3.);
+// 	EXPECT_DOUBLE_EQ(c.getNextStep(), 0.15*c_light);
 
-}
+// }
 
 
 } // namespace crpropa

@@ -46,19 +46,20 @@ std::string UniformAdvectionField::getDescription() const {
 
 //----------------------------------------------------------------
 
-ConstantSphericalAdvectionField::ConstantSphericalAdvectionField(const Vector3d origin, double vWind) {
+ConstantSphericalAdvectionField::ConstantSphericalAdvectionField(const Vector3d origin, double shockRadius, double v1, double v2) {
 	setOrigin(origin);
-	setVWind(vWind);
+	setShockRadius(shockRadius);
+	setVWind(v1, v2);
 }
 
 Vector3d ConstantSphericalAdvectionField::getField(const Vector3d &position) const {
 	Vector3d Pos = position-origin;
-	return vWind * Pos.getUnitVector();
+	return getVWind(Pos.getR()) * Pos.getUnitVector();
 }
 
 double ConstantSphericalAdvectionField::getDivergence(const Vector3d &position) const {
-	double R = (position-origin).getR();	
-	return 2*vWind/R;
+	double R = (position-origin).getR();
+	return 2*getVWind(R)/R;
 }
 
 void ConstantSphericalAdvectionField::setOrigin(const Vector3d o) {
@@ -66,8 +67,14 @@ void ConstantSphericalAdvectionField::setOrigin(const Vector3d o) {
 	return;
 }
 
-void ConstantSphericalAdvectionField::setVWind(double v) {
-	vWind = v;
+void ConstantSphericalAdvectionField::setVWind(double vel1, double vel2) {
+	v1 = vel1;
+	v2 = vel2;
+	return;
+}
+
+void ConstantSphericalAdvectionField::setShockRadius(double radius) {
+	shockRadius = radius;
 	return;
 }
 
@@ -75,14 +82,22 @@ Vector3d ConstantSphericalAdvectionField::getOrigin() const {
 	return origin;
 }
 
-double ConstantSphericalAdvectionField::getVWind() const {
-	return vWind;
+double ConstantSphericalAdvectionField::getVWind(double R) const {
+	if (R < getShockRadius())
+		return v1;
+	else
+		return v2;
+}
+
+double ConstantSphericalAdvectionField::getShockRadius() const {
+	return shockRadius;
 }
 
 std::string ConstantSphericalAdvectionField::getDescription() const {
 	std::stringstream s;
 	s << "Origin: " << origin / kpc  << " kpc, ";
-	s << "v0: " << vWind / km * sec << " km/s, ";
+	s << "Shock Radius: " << shockRadius / pc << "pc, ";
+	s << "v1 | v2: " << v1 << v2 << " m/s, ";
 	return s.str();
 }
 

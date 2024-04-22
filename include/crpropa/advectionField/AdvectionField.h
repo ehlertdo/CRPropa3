@@ -64,7 +64,9 @@ public:
 
 class ConstantSphericalAdvectionField: public AdvectionField {
 	Vector3d origin; //origin of the advection sphere
-	double vWind; // wind velocity
+	double shockRadius; // radius of the shock in the advection flow
+	double v1; // upstream wind velocity
+	double v2; // downstream wind velocity
 public:
 	/** Constructor
 	 @param origin	Origin of the advection field
@@ -72,15 +74,17 @@ public:
 
 */
 
-	ConstantSphericalAdvectionField(const Vector3d origin, double vWind);
+	ConstantSphericalAdvectionField(const Vector3d origin, double shockRadius, double v1, double v2);
 	Vector3d getField(const Vector3d &position) const;
 	double getDivergence(const Vector3d &position) const;
 
 	void setOrigin(const Vector3d origin);
-	void setVWind(double vMax);
+	void setVWind(double v1, double v2);
+	void setShockRadius(double shockRadius);
 
 	Vector3d getOrigin() const;
-	double getVWind() const;
+	double getVWind(double R) const;
+	double getShockRadius() const;
 
 	std::string getDescription() const;
 

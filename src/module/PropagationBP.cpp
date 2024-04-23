@@ -18,6 +18,18 @@ namespace crpropa {
 
 	PropagationBP::Y PropagationBP::dY(Vector3d pos, Vector3d dir, double step,
 			double z, double q, double m) const {
+		// ADVECTION ---------------------------------
+		// velocity of advection field [m/s]
+		Vector3d vWind = getAdvFieldAtPosition(pos);
+		// advection step length [m]
+		Vector3d l_adv = (step / c_light) * vWind;
+		// update location
+		pos += l_adv;
+
+		// DIFFUSION ---------------------------------
+		// renormalise diffusion step: adv + diff <= ct
+		step -= l_adv.getR();
+
 		// half leap frog step in the position
 		pos += dir * step / 2.;
 
@@ -35,15 +47,6 @@ namespace crpropa {
 
 		// the other half leap frog step in the position
 		pos += dir * step / 2.;
-
-		// advection ----------
-
-		// velocity of advection field [m/s]
-		Vector3d vWind = getAdvFieldAtPosition(pos);
-		// multiply time step with advection velocity [m/s]
-		// dir += (vWind * m / kpc );// * step / c_light;
-		pos += step / c_light * vWind;
-
 
 		return Y(pos, dir);
 	}

@@ -169,14 +169,11 @@ namespace crpropa {
 				// radial dependence of the magnetic field
 				double shockRadius = getShockRadius();
 				double R = pos.getR();
-				double pos_scale = shockRadius / R;
-				// B denotes the magnetic field just downstream of the shock
+				// B denotes the const. magnetic field downstream of the shock
 				// was amplified by sqrt(11) at the shock
-				// -> upstream field weaker by 1 / sqrt(11)
+				// -> upstream field weaker by 1/sqrt(11); and scales as 1/R
 				if (shockRadius > R)
-					pos_scale /= std::sqrt(11);
-				B *= pos_scale;
-				// std::cout << shockRadius / pc << " | " << R / pc << " | " << pos_scale << " | " << B << std::endl;
+					B *= (shockRadius / R) / std::sqrt(11);
 
 		} catch (std::exception &e) {
 			KISS_LOG_ERROR 	<< "PropagationBP: Exception in PropagationBP::getFieldAtPosition.\n"

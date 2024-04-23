@@ -176,15 +176,19 @@ void PhotoDisintegration::process(Candidate *candidate) const {
 
 		// radial dependence of the photon field
 		if (photonField->hasScaleRadius()) {
+			double scaleRadius = photonField->getScaleRadius();
 			double outerRadius = photonField->getOuterRadius();
 			Vector3d pos = candidate->current.getPosition();
 			double R = pos.getR();
 			double pos_scale;
-			if (outerRadius > R) {
-				pos_scale = 1;
-			} else {
-				pos_scale = std::pow(outerRadius / R, 2);
-			}
+			// update scaleRadius if within radius of emitter
+			if (scaleRadius < outerRadius)
+				scaleRadius = outerRadius;
+			// radius scaling
+			if (R < outerRadius)
+				pos_scale = std::pow(scaleRadius / outerRadius, 2);
+			else
+				pos_scale = std::pow(scaleRadius / R, 2);
 			rate *= pos_scale;
 		}
 

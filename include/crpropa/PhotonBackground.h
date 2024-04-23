@@ -23,6 +23,7 @@ public:
 		this->fieldName = "AbstractPhotonField";
 		this->isRedshiftDependent = false;
 		this->applyScaleRadius = applyScaleRadius;
+		this->scaleRadius = scaleRadius;
 		this->outerRadius = outerRadius;
 	}
 
@@ -51,6 +52,9 @@ public:
 	virtual bool hasScaleRadius() const {
 		return this->applyScaleRadius;
 	}
+	virtual double getScaleRadius() const {
+		return this->scaleRadius;
+	}
 	virtual double getOuterRadius() const {
 		return this->outerRadius;
 	}
@@ -67,6 +71,7 @@ protected:
 	std::string fieldName;
 	bool isRedshiftDependent;
 	bool applyScaleRadius;
+	double scaleRadius;
 	double outerRadius;
 };
 
@@ -81,9 +86,10 @@ protected:
  */
 class TabularPhotonField: public PhotonField {
 public:
-	TabularPhotonField(const std::string fieldName, const bool isRedshiftDependent = true, const bool applyScaleRadius = false, const double outerRadius = 0);
+	TabularPhotonField(const std::string fieldName, const bool isRedshiftDependent = true, const bool applyScaleRadius = false, const double scaleRadius = 0, const double outerRadius = 0);
 
 	bool hasScaleRadius() const;
+	double getScaleRadius() const;
 	double getOuterRadius() const;
 	double getPhotonDensity(double ePhoton, double z = 0.) const;
 	double getRedshiftScaling(double z) const;

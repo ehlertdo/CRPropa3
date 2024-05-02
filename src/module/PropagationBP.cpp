@@ -22,22 +22,22 @@ namespace crpropa {
 		// velocity of advection field [m/s]
 		Vector3d vWind = getAdvFieldAtPosition(pos);
 		// advection step length [m]
-		Vector3d l_adv = (step / c_light) * vWind;
+		Vector3d l_adv = step / (1 + c_light / vWind);
 		// update location
 		pos += l_adv;
 
 		// DIFFUSION ---------------------------------
 		// renormalise diffusion step: adv + diff <= ct
-		step -= l_adv.getR();
+		double l_diff = step - l_adv.getR();
 
 		// half leap frog step in the position
-		pos += dir * step / 2.;
+		pos += dir * l_diff / 2.;
 
 		// get B field at particle position
 		Vector3d B = getFieldAtPosition(pos, z);
 
 		// Boris help vectors
-		Vector3d t = B * q / 2 / m * step / c_light;
+		Vector3d t = B * q / 2 / m * l_diff / c_light;
 		Vector3d s = t * 2 / (1 + t.dot(t));
 		Vector3d v_help;
 
@@ -45,8 +45,8 @@ namespace crpropa {
 		v_help = dir + dir.cross(t);
 		dir = dir + v_help.cross(s);
 
-		// the other half leap frog step in the position
-		pos += dir * step / 2.;
+		// the other half leap frog l_diff in the position
+		pos += dir * l_diff / 2.;
 
 		return Y(pos, dir);
 	}

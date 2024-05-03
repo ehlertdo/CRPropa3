@@ -18,20 +18,16 @@ namespace crpropa {
 
 	PropagationBP::Y PropagationBP::dY(Vector3d pos, Vector3d dir, double step,
 			double z, double q, double m) const {
-		// ADVECTION ---------------------------------
 		// velocity of advection field [m/s]
 		Vector3d vWind = getAdvFieldAtPosition(pos);
-		// advection step length [m]
-		Vector3d l_adv = (step / c_light) * vWind;
-		// update location
-		pos += l_adv;
+		// add advection vector [(vx vy vz) / c] to propagation direction
+		Vector3d dir_tot = dir + vWind.getUnitVector() * (vWind.getR() / c_light);
+		// renormalise to unit vector
+		dir_tot = dir_tot.getUnitVector();
 
-		// DIFFUSION ---------------------------------
-		// renormalise diffusion step: adv + diff <= ct
-		step -= l_adv.getR();
-
+		// BORIS-PUSH ALGORITHM ========================
 		// half leap frog step in the position
-		pos += dir * step / 2.;
+		pos += dir_tot * step / 2.;
 
 		// get B field at particle position
 		Vector3d B = getFieldAtPosition(pos, z);
@@ -45,8 +41,12 @@ namespace crpropa {
 		v_help = dir + dir.cross(t);
 		dir = dir + v_help.cross(s);
 
+		// include advection for the second half step
+		dir_tot = dir + vWind.getUnitVector() * (vWind.getR() / c_light);
+		dir_tot = dir_tot.getUnitVector();
+
 		// the other half leap frog step in the position
-		pos += dir * step / 2.;
+		pos += dir_tot * step / 2.;
 
 		return Y(pos, dir);
 	}

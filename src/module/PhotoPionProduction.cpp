@@ -173,39 +173,41 @@ void PhotoPionProduction::process(Candidate *candidate) const {
 		int N = A - Z;
 		double gamma = candidate->current.getLorentzFactor();
 
+		// radial dependence of the photon field
+		double pos_scale = 1;
+		if (photonField->hasScaleRadius()) {
+			// normalisation radius of photon field
+			double scaleRadius = photonField->getScaleRadius();
+			// emission radius of photon field
+			double outerRadius = photonField->getOuterRadius();
+			// particle distance from center
+			Vector3d pos = candidate->current.getPosition();
+			double R = pos.getR();
+			// update scaleRadius if within radius of emitter
+			if (scaleRadius < outerRadius)
+				scaleRadius = outerRadius;
+			// radius scaling
+			if (R < outerRadius)
+				pos_scale = std::pow(outerRadius / scaleRadius, 2);
+			else
+				pos_scale = std::pow(R / scaleRadius, 2);
+		}
+
 		// check for interaction on protons
 		if (Z > 0) {
-			meanFreePath = nucleonMFP(gamma, z, true) / nucleiModification(A, Z);
+			meanFreePath = pos_scale * nucleonMFP(gamma, z, true) / nucleiModification(A, Z);
 			randDistance = -log(random.rand()) * meanFreePath;
 			totalRate += 1. / meanFreePath;
 		}
 		// check for interaction on neutrons
 		if (N > 0) {
-			meanFreePath = nucleonMFP(gamma, z, false) / nucleiModification(A, N);
+			meanFreePath = pos_scale * nucleonMFP(gamma, z, false) / nucleiModification(A, N);
 			totalRate += 1. / meanFreePath;
 			double d = -log(random.rand()) * meanFreePath;
 			if (d < randDistance) {
 				randDistance = d;
 				onProton = false;
 			}
-		}
-
-		// radial dependence of the photon field
-		if (photonField->hasScaleRadius()) {
-			double scaleRadius = photonField->getScaleRadius();
-			double outerRadius = photonField->getOuterRadius();
-			Vector3d pos = candidate->current.getPosition();
-			double R = pos.getR();
-			double pos_scale;
-			// update scaleRadius if within radius of emitter
-			if (scaleRadius < outerRadius)
-				scaleRadius = outerRadius;
-			// radius scaling
-			if (R < outerRadius)
-				pos_scale = std::pow(scaleRadius / outerRadius, 2);
-			else
-				pos_scale = std::pow(scaleRadius / R, 2);
-			totalRate *= pos_scale;
 		}
 
 		// check if interaction does not happen
@@ -242,7 +244,7 @@ void PhotoPionProduction::performInteraction(Candidate *candidate, bool onProton
 	// SOPHIA - input:
 	int nature = 1 - static_cast<int>(onProton);  // 0=proton, 1=neutron
 	double Ein = EpA / GeV;  // GeV is the SOPHIA standard unit
-	double eps = sampleEps(onProton, EpA, z) / GeV;  // GeV for SOPHIA
+	double eps = sampleEps(candidate, onProton, EpA, z) / GeV;  // GeV for SOPHIA
 
 	// SOPHIA - output:
 	double outputEnergy[5][2000];  // [GeV/c, GeV/c, GeV/c, GeV, GeV/c^2]
@@ -431,17 +433,17 @@ SophiaEventOutput PhotoPionProduction::sophiaEvent(bool onProton, double Ein, do
 	return output;
 }
 
-double PhotoPionProduction::sampleEps(bool onProton, double E, double z) const {
+double PhotoPionProduction::sampleEps(Candidate *candidate, bool onProton, double E, double z) const {
 	// sample eps between epsMin ... epsMax
 	double Ein = E / GeV;
 	double epsMin = std::max(photonField -> getMinimumPhotonEnergy(z) / eV, epsMinInteraction(onProton, Ein));
 	double epsMax = photonField -> getMaximumPhotonEnergy(z) / eV;
-	double pEpsMax = probEpsMax(onProton, Ein, z, epsMin, epsMax);
+	double pEpsMax = probEpsMax(candidate, onProton, Ein, z, epsMin, epsMax);
 
 	Random &random = Random::instance();
 	for (int i = 0; i < 1000000; i++) {
 		double eps = epsMin + random.rand() * (epsMax - epsMin);
-		double pEps = probEps(eps, onProton, Ein, z);
+		double pEps = probEps(candidate, eps, onProton, Ein, z);
 		if (random.rand() * pEpsMax < pEps)
 			return eps * eV;
 	}
@@ -457,7 +459,7 @@ double PhotoPionProduction::epsMinInteraction(bool onProton, double Ein) const {
 	return epsMin;
 }
 
-double PhotoPionProduction::probEpsMax(bool onProton, double Ein, double z, double epsMin, double epsMax) const {
+double PhotoPionProduction::probEpsMax(Candidate *candidate, bool onProton, double Ein, double z, double epsMin, double epsMax) const {
 	// find pEpsMax by testing photon energies (eps) for their interaction
 	// probabilities (p) in order to find the maximum (max) probability
 	const int nrSteps = 100;
@@ -476,7 +478,7 @@ double PhotoPionProduction::probEpsMax(bool onProton, double Ein, double z, doub
 			epsDummy = epsMin * pow(10, step * i);
 		else
 			epsDummy = epsMin + step * i;
-		double p = probEps(epsDummy, onProton, Ein, z);
+		double p = probEps(candidate, epsDummy, onProton, Ein, z);
 		if(p > pEpsMaxTested)
 			pEpsMaxTested = p;
 		i++;
@@ -497,10 +499,33 @@ double PhotoPionProduction::probEpsMax(bool onProton, double Ein, double z, doub
 	return pEpsMax;
 }
 
-double PhotoPionProduction::probEps(double eps, bool onProton, double Ein, double z) const {
+double PhotoPionProduction::probEps(Candidate *candidate, double eps, bool onProton, double Ein, double z) const {
 	// probEps returns "probability to encounter a photon of energy eps", given a primary nucleon
 	// note, probEps does not return a normalized probability [0,...,1]
 	double photonDensity = photonField->getPhotonDensity(eps * eV, z) * ccm / eps;
+
+	// radial dependence of the photon field --------------------
+	if (photonField->hasScaleRadius()) {
+		// normalisation radius of photon field
+		double scaleRadius = photonField->getScaleRadius();
+		// emission radius of photon field
+		double outerRadius = photonField->getOuterRadius();
+		// particle distance from center
+		Vector3d pos = candidate->current.getPosition();
+		double R = pos.getR();
+		double pos_scale;
+		// update scaleRadius if within radius of emitter
+		if (scaleRadius < outerRadius)
+			scaleRadius = outerRadius;
+		// radius scaling
+		if (R < outerRadius)
+			pos_scale = std::pow(scaleRadius / outerRadius, 2);
+		else
+			pos_scale = std::pow(scaleRadius / R, 2);
+		photonDensity *= pos_scale;
+	}
+	// ----------------------------------------------------------
+
 	if (photonDensity != 0.) {
 		const double p = momentum(onProton, Ein);
 		const double sMax = mass(onProton) * mass(onProton) + 2. * eps * (Ein + p) / 1.e9;

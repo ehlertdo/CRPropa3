@@ -83,10 +83,11 @@ Vector3d ConstantSphericalAdvectionField::getOrigin() const {
 }
 
 double ConstantSphericalAdvectionField::getVWind(double R) const {
-	if (R < getShockRadius())
+	double shockRadius = getShockRadius();
+	if (R < shockRadius)
 		return v1;
 	else
-		return v2;
+		return v2 * pow(shockRadius / R, 2);
 }
 
 double ConstantSphericalAdvectionField::getShockRadius() const {

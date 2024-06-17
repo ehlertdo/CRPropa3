@@ -652,7 +652,8 @@ TEST(PhotoPionProduction, sampling) {
 	double correctionFactor = ppp.getCorrectionFactor(); //get current correctionFactor
 	double epsMin = std::max(cmb -> getMinimumPhotonEnergy(z) / eV, 0.00710614); // 0.00710614 = epsMinInteraction(onProton,energy)
 	double epsMax = cmb -> getMaximumPhotonEnergy(z) / eV;
-	double pEpsMax = ppp.probEpsMax(onProton, energy, z, epsMin, epsMax) / correctionFactor;
+	Candidate c(nucleusId(1, 1), 100 * EeV);
+	double pEpsMax = ppp.probEpsMax(&c, onProton, energy, z, epsMin, epsMax) / correctionFactor;
 	EXPECT_DOUBLE_EQ(pEpsMax,132673934934.922);
 }
 

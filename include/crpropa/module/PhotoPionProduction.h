@@ -46,7 +46,7 @@ protected:
 	// called by: sampleEps, gaussInt
 	// - input: photon energy eps [eV], Ein [GeV]
 	// - output: probability to encounter photon of energy eps
-	double probEps(double eps, bool onProton, double Ein, double z) const;
+	double probEps(Candidate *candidate, double eps, bool onProton, double Ein, double z) const;
 
 	/** called by: sampleEps
 	@param onProton	particle type: proton or neutron
@@ -188,7 +188,7 @@ public:
 	 @param E		energy of incoming nucleon [J]
 	 @param z		redshift of incoming nucleon
 	 */
-	double sampleEps(bool onProton, double E, double z) const;
+	double sampleEps(Candidate *candidate, bool onProton, double E, double z) const;
 	
 	/** called by: sampleEps
 	@param onProton	particle type: proton or neutron
@@ -198,7 +198,7 @@ public:
 	@param epsMax   maximum photon energy of field
 	- output: maximum probability of all photons in field
 	 */
-	double probEpsMax(bool onProton, double Ein, double z, double epsMin, double epsMax) const;
+	double probEpsMax(Candidate *candidate, bool onProton, double Ein, double z, double epsMin, double epsMax) const;
 	
 	// using log or lin spacing of photons in the range between epsMin and
 	// epsMax for computing the maximum probability of photons in field

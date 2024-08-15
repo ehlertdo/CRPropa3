@@ -174,7 +174,7 @@ void PhotoPionProduction::process(Candidate *candidate) const {
 		double gamma = candidate->current.getLorentzFactor();
 
 		// radial dependence of the photon field
-		double pos_scale = 1;
+		double field_pos_scale = 1;
 		if (photonField->hasScaleRadius()) {
 			// normalisation radius of photon field
 			double scaleRadius = photonField->getScaleRadius();
@@ -188,20 +188,20 @@ void PhotoPionProduction::process(Candidate *candidate) const {
 				scaleRadius = outerRadius;
 			// radius scaling
 			if (R < outerRadius)
-				pos_scale = std::pow(outerRadius / scaleRadius, 2);
+				field_pos_scale = std::pow(scaleRadius / outerRadius, 2);
 			else
-				pos_scale = std::pow(R / scaleRadius, 2);
+				field_pos_scale = std::pow(scaleRadius / R, 2);
 		}
 
 		// check for interaction on protons
 		if (Z > 0) {
-			meanFreePath = pos_scale * nucleonMFP(gamma, z, true) / nucleiModification(A, Z);
+			meanFreePath = nucleonMFP(gamma, z, true) / nucleiModification(A, Z) / field_pos_scale;
 			randDistance = -log(random.rand()) * meanFreePath;
 			totalRate += 1. / meanFreePath;
 		}
 		// check for interaction on neutrons
 		if (N > 0) {
-			meanFreePath = pos_scale * nucleonMFP(gamma, z, false) / nucleiModification(A, N);
+			meanFreePath = nucleonMFP(gamma, z, false) / nucleiModification(A, N) / field_pos_scale;
 			totalRate += 1. / meanFreePath;
 			double d = -log(random.rand()) * meanFreePath;
 			if (d < randDistance) {
@@ -462,7 +462,7 @@ double PhotoPionProduction::epsMinInteraction(bool onProton, double Ein) const {
 double PhotoPionProduction::probEpsMax(Candidate *candidate, bool onProton, double Ein, double z, double epsMin, double epsMax) const {
 	// find pEpsMax by testing photon energies (eps) for their interaction
 	// probabilities (p) in order to find the maximum (max) probability
-	const int nrSteps = 100;
+	const int nrSteps = 200;
 	double pEpsMaxTested = 0.;
 	double step = 0.;
 	if (sampleLog){
@@ -513,16 +513,16 @@ double PhotoPionProduction::probEps(Candidate *candidate, double eps, bool onPro
 		// particle distance from center
 		Vector3d pos = candidate->current.getPosition();
 		double R = pos.getR();
-		double pos_scale;
+		double field_pos_scale;
 		// update scaleRadius if within radius of emitter
 		if (scaleRadius < outerRadius)
 			scaleRadius = outerRadius;
 		// radius scaling
 		if (R < outerRadius)
-			pos_scale = std::pow(scaleRadius / outerRadius, 2);
+			field_pos_scale = std::pow(scaleRadius / outerRadius, 2);
 		else
-			pos_scale = std::pow(scaleRadius / R, 2);
-		photonDensity *= pos_scale;
+			field_pos_scale = std::pow(scaleRadius / R, 2);
+		photonDensity *= field_pos_scale;
 	}
 	// ----------------------------------------------------------
 

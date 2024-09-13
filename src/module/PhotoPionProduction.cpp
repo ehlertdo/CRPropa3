@@ -174,7 +174,7 @@ void PhotoPionProduction::process(Candidate *candidate) const {
 		double gamma = candidate->current.getLorentzFactor();
 
 		// radial dependence of the photon field
-		double field_pos_scale = 1;
+		double pos_scale = 1;
 		if (photonField->hasScaleRadius()) {
 			// normalisation radius of photon field
 			double scaleRadius = photonField->getScaleRadius();
@@ -182,26 +182,41 @@ void PhotoPionProduction::process(Candidate *candidate) const {
 			double outerRadius = photonField->getOuterRadius();
 			// particle distance from center
 			Vector3d pos = candidate->current.getPosition();
-			double R = pos.getR();
-			// update scaleRadius if within radius of emitter
-			if (scaleRadius < outerRadius)
-				scaleRadius = outerRadius;
-			// radius scaling
-			if (R < outerRadius)
-				field_pos_scale = std::pow(scaleRadius / outerRadius, 2);
-			else
-				field_pos_scale = std::pow(scaleRadius / R, 2);
+			
+			// apply dust-ring scaling ==========
+			// undo pre-scaling to scaleRadius
+			double R = scaleRadius;
+			double theta = 0;
+			double divisor = std::sqrt(std::pow(R, 4) + 2 * std::pow(R * outerRadius, 2) * std::cos(2 * theta) + std::pow(outerRadius, 4));
+			double dividend = 2 * std::atan(std::tan(- M_PI / 2) * (std::pow(R, 2) + 2 * R * outerRadius * std::sin(theta) + std::pow(outerRadius, 2)) / divisor);
+			double pos_scale = - divisor / dividend;
+			// scale to correct radius
+			R = pos.getR();
+			theta = pos.getTheta();
+			divisor = divisor = std::sqrt(std::pow(R, 4) + 2 * std::pow(R * outerRadius, 2) * std::cos(2 * theta) + std::pow(outerRadius, 4));
+			dividend = 2 * std::atan(std::tan(- M_PI / 2) * (std::pow(R, 2) + 2 * R * outerRadius * std::sin(theta) + std::pow(outerRadius, 2)) / divisor);
+			pos_scale *= - dividend / divisor;
+
+			// double R = pos.getR();
+			// // update scaleRadius if within radius of emitter
+			// if (scaleRadius < outerRadius)
+			// 	scaleRadius = outerRadius;
+			// // radius scaling
+			// if (R < outerRadius)
+			// 	pos_scale = std::pow(scaleRadius / outerRadius, 2);
+			// else
+			// 	pos_scale = std::pow(scaleRadius / R, 2);
 		}
 
 		// check for interaction on protons
 		if (Z > 0) {
-			meanFreePath = nucleonMFP(gamma, z, true) / nucleiModification(A, Z) / field_pos_scale;
+			meanFreePath = nucleonMFP(gamma, z, true) / nucleiModification(A, Z) / pos_scale;
 			randDistance = -log(random.rand()) * meanFreePath;
 			totalRate += 1. / meanFreePath;
 		}
 		// check for interaction on neutrons
 		if (N > 0) {
-			meanFreePath = nucleonMFP(gamma, z, false) / nucleiModification(A, N) / field_pos_scale;
+			meanFreePath = nucleonMFP(gamma, z, false) / nucleiModification(A, N) / pos_scale;
 			totalRate += 1. / meanFreePath;
 			double d = -log(random.rand()) * meanFreePath;
 			if (d < randDistance) {
@@ -512,17 +527,32 @@ double PhotoPionProduction::probEps(Candidate *candidate, double eps, bool onPro
 		double outerRadius = photonField->getOuterRadius();
 		// particle distance from center
 		Vector3d pos = candidate->current.getPosition();
-		double R = pos.getR();
-		double field_pos_scale;
-		// update scaleRadius if within radius of emitter
-		if (scaleRadius < outerRadius)
-			scaleRadius = outerRadius;
-		// radius scaling
-		if (R < outerRadius)
-			field_pos_scale = std::pow(scaleRadius / outerRadius, 2);
-		else
-			field_pos_scale = std::pow(scaleRadius / R, 2);
-		photonDensity *= field_pos_scale;
+
+		// apply dust-ring scaling ==========
+		// undo pre-scaling to scaleRadius
+		double R = scaleRadius;
+		double theta = 0;
+		double divisor = std::sqrt(std::pow(R, 4) + 2 * std::pow(R * outerRadius, 2) * std::cos(2 * theta) + std::pow(outerRadius, 4));
+		double dividend = 2 * std::atan(std::tan(- M_PI / 2) * (std::pow(R, 2) + 2 * R * outerRadius * std::sin(theta) + std::pow(outerRadius, 2)) / divisor);
+		double pos_scale = - divisor / dividend;
+		// scale to correct radius
+		R = pos.getR();
+		theta = pos.getTheta();
+		divisor = divisor = std::sqrt(std::pow(R, 4) + 2 * std::pow(R * outerRadius, 2) * std::cos(2 * theta) + std::pow(outerRadius, 4));
+		dividend = 2 * std::atan(std::tan(- M_PI / 2) * (std::pow(R, 2) + 2 * R * outerRadius * std::sin(theta) + std::pow(outerRadius, 2)) / divisor);
+		pos_scale *= - dividend / divisor;
+
+		// double R = pos.getR();
+		// double pos_scale;
+		// // update scaleRadius if within radius of emitter
+		// if (scaleRadius < outerRadius)
+		// 	scaleRadius = outerRadius;
+		// // radius scaling
+		// if (R < outerRadius)
+		// 	pos_scale = std::pow(scaleRadius / outerRadius, 2);
+		// else
+		// 	pos_scale = std::pow(scaleRadius / R, 2);
+		photonDensity *= pos_scale;
 	}
 	// ----------------------------------------------------------
 

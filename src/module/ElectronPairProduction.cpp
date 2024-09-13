@@ -117,15 +117,30 @@ void ElectronPairProduction::process(Candidate *c) const {
 		double outerRadius = photonField->getOuterRadius();
 		// particle distance from center
 		Vector3d pos = c->current.getPosition();
-		double R = pos.getR();
-		// update scaleRadius if within radius of emitter
-		if (scaleRadius < outerRadius)
-			scaleRadius = outerRadius;
-		// radius scaling
-		if (R < outerRadius)
-			pos_scale = std::pow(scaleRadius / outerRadius, 2);
-		else
-			pos_scale = std::pow(scaleRadius / R, 2);
+
+		// apply dust-ring scaling ==========
+		// undo pre-scaling to scaleRadius
+		double R = scaleRadius;
+		double theta = 0;
+		double divisor = std::sqrt(std::pow(R, 4) + 2 * std::pow(R * outerRadius, 2) * std::cos(2 * theta) + std::pow(outerRadius, 4));
+		double dividend = 2 * std::atan(std::tan(- M_PI / 2) * (std::pow(R, 2) + 2 * R * outerRadius * std::sin(theta) + std::pow(outerRadius, 2)) / divisor);
+		double pos_scale = - divisor / dividend;
+		// scale to correct radius
+		R = pos.getR();
+		theta = pos.getTheta();
+		divisor = divisor = std::sqrt(std::pow(R, 4) + 2 * std::pow(R * outerRadius, 2) * std::cos(2 * theta) + std::pow(outerRadius, 4));
+		dividend = 2 * std::atan(std::tan(- M_PI / 2) * (std::pow(R, 2) + 2 * R * outerRadius * std::sin(theta) + std::pow(outerRadius, 2)) / divisor);
+		pos_scale *= - dividend / divisor;
+
+		// double R = pos.getR();
+		// // update scaleRadius if within radius of emitter
+		// if (scaleRadius < outerRadius)
+		// 	scaleRadius = outerRadius;
+		// // radius scaling
+		// if (R < outerRadius)
+		// 	pos_scale = std::pow(scaleRadius / outerRadius, 2);
+		// else
+		// 	pos_scale = std::pow(scaleRadius / R, 2);
 	}
 
 	double lf = c->current.getLorentzFactor();

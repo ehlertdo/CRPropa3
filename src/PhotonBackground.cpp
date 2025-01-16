@@ -48,6 +48,28 @@ double TabularPhotonField::getOuterRadius() const {
 }
 
 
+double TabularPhotonField::getRadialScaling(double R) const {
+	// radial dependence of the photon field
+	double field_radial_scaling = 1;
+	if (this->hasScaleRadius()) {
+		// normalisation radius of photon field
+		double scaleRadius = this->getScaleRadius();
+		// emission radius of photon field
+		double outerRadius = this->getOuterRadius();
+
+		// update scaleRadius if within radius of emitter
+		if (scaleRadius < outerRadius)
+			scaleRadius = outerRadius;
+		// radius scaling
+		if (R < outerRadius)
+			field_radial_scaling = std::pow(scaleRadius / outerRadius, 2);
+		else
+			field_radial_scaling = std::pow(scaleRadius / R, 2);
+	}
+	return field_radial_scaling;
+}
+
+
 double TabularPhotonField::getPhotonDensity(double Ephoton, double z) const {	
 	if ((this->isRedshiftDependent)) {
 		// fix behaviour for future redshift. See issue #414

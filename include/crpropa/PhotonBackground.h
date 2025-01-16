@@ -58,6 +58,9 @@ public:
 	virtual double getOuterRadius() const {
 		return this->outerRadius;
 	}
+	virtual double getRadialScaling(double R) const {
+		return 1.;
+	}
 
 	bool hasRedshiftDependence() const {
 		return this->isRedshiftDependent;
@@ -91,6 +94,7 @@ public:
 	bool hasScaleRadius() const;
 	double getScaleRadius() const;
 	double getOuterRadius() const;
+	double getRadialScaling(double R) const;
 	double getPhotonDensity(double ePhoton, double z = 0.) const;
 	double getRedshiftScaling(double z) const;
 	double getMinimumPhotonEnergy(double z) const;

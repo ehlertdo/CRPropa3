@@ -175,22 +175,8 @@ void PhotoDisintegration::process(Candidate *candidate) const {
 		rate *= pow_integer<2>(1 + z) * photonField->getRedshiftScaling(z); // cosmological scaling, rate per comoving distance
 
 		// radial dependence of the photon field
-		if (photonField->hasScaleRadius()) {
-			double scaleRadius = photonField->getScaleRadius();
-			double outerRadius = photonField->getOuterRadius();
-			Vector3d pos = candidate->current.getPosition();
-			double R = pos.getR();
-			double pos_scale;
-			// update scaleRadius if within radius of emitter
-			if (scaleRadius < outerRadius)
-				scaleRadius = outerRadius;
-			// radius scaling
-			if (R < outerRadius)
-				pos_scale = std::pow(scaleRadius / outerRadius, 2);
-			else
-				pos_scale = std::pow(scaleRadius / R, 2);
-			rate *= pos_scale;
-		}
+		double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR());
+		rate *= field_radial_scaling;
 
 		// check if interaction occurs in this step
 		// otherwise limit next step to a fraction of the mean free path

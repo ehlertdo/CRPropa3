@@ -174,34 +174,17 @@ void PhotoPionProduction::process(Candidate *candidate) const {
 		double gamma = candidate->current.getLorentzFactor();
 
 		// radial dependence of the photon field
-		double field_pos_scale = 1;
-		if (photonField->hasScaleRadius()) {
-			// normalisation radius of photon field
-			double scaleRadius = photonField->getScaleRadius();
-			// emission radius of photon field
-			double outerRadius = photonField->getOuterRadius();
-			// particle distance from center
-			Vector3d pos = candidate->current.getPosition();
-			double R = pos.getR();
-			// update scaleRadius if within radius of emitter
-			if (scaleRadius < outerRadius)
-				scaleRadius = outerRadius;
-			// radius scaling
-			if (R < outerRadius)
-				field_pos_scale = std::pow(scaleRadius / outerRadius, 2);
-			else
-				field_pos_scale = std::pow(scaleRadius / R, 2);
-		}
+		double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR());
 
 		// check for interaction on protons
 		if (Z > 0) {
-			meanFreePath = nucleonMFP(gamma, z, true) / nucleiModification(A, Z) / field_pos_scale;
+			meanFreePath = nucleonMFP(gamma, z, true) / nucleiModification(A, Z) / field_radial_scaling;
 			randDistance = -log(random.rand()) * meanFreePath;
 			totalRate += 1. / meanFreePath;
 		}
 		// check for interaction on neutrons
 		if (N > 0) {
-			meanFreePath = nucleonMFP(gamma, z, false) / nucleiModification(A, N) / field_pos_scale;
+			meanFreePath = nucleonMFP(gamma, z, false) / nucleiModification(A, N) / field_radial_scaling;
 			totalRate += 1. / meanFreePath;
 			double d = -log(random.rand()) * meanFreePath;
 			if (d < randDistance) {
@@ -504,26 +487,9 @@ double PhotoPionProduction::probEps(Candidate *candidate, double eps, bool onPro
 	// note, probEps does not return a normalized probability [0,...,1]
 	double photonDensity = photonField->getPhotonDensity(eps * eV, z) * ccm / eps;
 
-	// radial dependence of the photon field --------------------
-	if (photonField->hasScaleRadius()) {
-		// normalisation radius of photon field
-		double scaleRadius = photonField->getScaleRadius();
-		// emission radius of photon field
-		double outerRadius = photonField->getOuterRadius();
-		// particle distance from center
-		Vector3d pos = candidate->current.getPosition();
-		double R = pos.getR();
-		double field_pos_scale;
-		// update scaleRadius if within radius of emitter
-		if (scaleRadius < outerRadius)
-			scaleRadius = outerRadius;
-		// radius scaling
-		if (R < outerRadius)
-			field_pos_scale = std::pow(scaleRadius / outerRadius, 2);
-		else
-			field_pos_scale = std::pow(scaleRadius / R, 2);
-		photonDensity *= field_pos_scale;
-	}
+	// radial dependence of the photon field
+	double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR());
+	photonDensity *= field_radial_scaling;
 	// ----------------------------------------------------------
 
 	if (photonDensity != 0.) {

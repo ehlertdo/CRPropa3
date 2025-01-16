@@ -108,30 +108,13 @@ void ElectronPairProduction::process(Candidate *c) const {
 	if (not (isNucleus(id)))
 		return; // only nuclei
 
-	// radial dependence of the photon field --------------------
-	double pos_scale = 1;
-	if (photonField->hasScaleRadius()) {
-		// normalisation radius of photon field
-		double scaleRadius = photonField->getScaleRadius();
-		// emission radius of photon field
-		double outerRadius = photonField->getOuterRadius();
-		// particle distance from center
-		Vector3d pos = c->current.getPosition();
-		double R = pos.getR();
-		// update scaleRadius if within radius of emitter
-		if (scaleRadius < outerRadius)
-			scaleRadius = outerRadius;
-		// radius scaling
-		if (R < outerRadius)
-			pos_scale = std::pow(scaleRadius / outerRadius, 2);
-		else
-			pos_scale = std::pow(scaleRadius / R, 2);
-	}
+	// radial dependence of the photon field
+	double field_radial_scaling = photonField->getRadialScaling(c->current.getPosition().getR());
 
 	double lf = c->current.getLorentzFactor();
 	double z = c->getRedshift();
 	double losslen = lossLength(id, lf, z);  // energy loss length
-	losslen /= pos_scale;  // apply radial dependence of photon field
+	losslen /= field_radial_scaling;  // apply radial dependence of photon field
 	if (losslen >= std::numeric_limits<double>::max())
 		return;
 

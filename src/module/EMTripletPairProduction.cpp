@@ -157,9 +157,12 @@ void EMTripletPairProduction::process(Candidate *candidate) const {
 	if ((E < tabEnergy.front()) or (E > tabEnergy.back()))
 		return;
 
+	// radial dependence of the photon field
+	double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR());
+
 	// cosmological scaling of interaction distance (comoving)
 	double scaling = pow_integer<2>(1 + z) * photonField->getRedshiftScaling(z);
-	double rate = scaling * interpolate(E, tabEnergy, tabRate);
+	double rate = scaling * field_radial_scaling * interpolate(E, tabEnergy, tabRate);
 
 	// run this loop at least once to limit the step size
 	double step = candidate->getCurrentStep();

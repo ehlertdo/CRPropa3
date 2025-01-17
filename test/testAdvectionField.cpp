@@ -35,11 +35,39 @@ TEST(testAdvectionFieldList, SimpleTest) {
 TEST(testConstantSphericalAdvectionField, SimpleTest) {
 	
 	Vector3d origin(1, 0, 0);
+	double V_wind(10);
+	
+	ConstantSphericalAdvectionField A(origin, V_wind);
+	
+	// Check the properties of the advection field
+	EXPECT_DOUBLE_EQ(A.getOrigin().x, origin.x);
+	EXPECT_DOUBLE_EQ(A.getOrigin().y, origin.y);
+	EXPECT_DOUBLE_EQ(A.getOrigin().z, origin.z);
+
+	EXPECT_DOUBLE_EQ(A.getVWind(), V_wind);
+
+	// Field should be radial with center (1,0,0)
+	Vector3d Pos(2, 1, 1);
+	Vector3d V = A.getField(Pos);
+
+	EXPECT_DOUBLE_EQ(V.x, 10.*pow(3, -0.5));
+	EXPECT_DOUBLE_EQ(V.y, 10.*pow(3, -0.5));
+	EXPECT_DOUBLE_EQ(V.z, 10.*pow(3, -0.5));
+	
+	// Divergence should be 2*V/r
+	Vector3d Pos2(2, 0, 0);
+	double D = A.getDivergence(Pos2);
+	EXPECT_DOUBLE_EQ(D, 2*10);
+}
+
+TEST(testConstantTwoZoneSphericalAdvectionField, SimpleTest) {
+	
+	Vector3d origin(1, 0, 0);
 	double shockRadius(0.5 * pc);
 	double v1(10);
 	double v2(5);
 	
-	ConstantSphericalAdvectionField A(origin, shockRadius, v1, v2);
+	ConstantTwoZoneSphericalAdvectionField A(origin, shockRadius, v1, v2);
 	
 	// Check the properties of the advection field
 	EXPECT_DOUBLE_EQ(A.getOrigin().x, origin.x);

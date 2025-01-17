@@ -233,9 +233,12 @@ void EMPairProduction::process(Candidate *candidate) const {
 	if ((E < tabEnergy.front()) or (E > tabEnergy.back()))
 		return;
 
+	// radial dependence of the photon field
+	double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR());
+
 	// interaction rate
 	double rate = interpolate(E, tabEnergy, tabRate);
-	rate *= pow_integer<2>(1 + z) * photonField->getRedshiftScaling(z);
+	rate *= pow_integer<2>(1 + z) * photonField->getRedshiftScaling(z) * field_radial_scaling;
 
 	// run this loop at least once to limit the step size 
 	double step = candidate->getCurrentStep();

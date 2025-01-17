@@ -46,20 +46,19 @@ std::string UniformAdvectionField::getDescription() const {
 
 //----------------------------------------------------------------
 
-ConstantSphericalAdvectionField::ConstantSphericalAdvectionField(const Vector3d origin, double shockRadius, double v1, double v2) {
+ConstantSphericalAdvectionField::ConstantSphericalAdvectionField(const Vector3d origin, double vWind) {
 	setOrigin(origin);
-	setShockRadius(shockRadius);
-	setVWind(v1, v2);
+	setVWind(vWind);
 }
 
 Vector3d ConstantSphericalAdvectionField::getField(const Vector3d &position) const {
 	Vector3d Pos = position-origin;
-	return getVWind(Pos.getR()) * Pos.getUnitVector();
+	return vWind * Pos.getUnitVector();
 }
 
 double ConstantSphericalAdvectionField::getDivergence(const Vector3d &position) const {
-	double R = (position-origin).getR();
-	return 2*getVWind(R)/R;
+	double R = (position-origin).getR();	
+	return 2*vWind/R;
 }
 
 void ConstantSphericalAdvectionField::setOrigin(const Vector3d o) {
@@ -67,14 +66,8 @@ void ConstantSphericalAdvectionField::setOrigin(const Vector3d o) {
 	return;
 }
 
-void ConstantSphericalAdvectionField::setVWind(double vel1, double vel2) {
-	v1 = vel1;
-	v2 = vel2;
-	return;
-}
-
-void ConstantSphericalAdvectionField::setShockRadius(double radius) {
-	shockRadius = radius;
+void ConstantSphericalAdvectionField::setVWind(double v) {
+	vWind = v;
 	return;
 }
 
@@ -82,7 +75,59 @@ Vector3d ConstantSphericalAdvectionField::getOrigin() const {
 	return origin;
 }
 
-double ConstantSphericalAdvectionField::getVWind(double R) const {
+double ConstantSphericalAdvectionField::getVWind() const {
+	return vWind;
+}
+
+std::string ConstantSphericalAdvectionField::getDescription() const {
+	std::stringstream s;
+	s << "Origin: " << origin / kpc  << " kpc, ";
+	s << "v0: " << vWind / km * sec << " km/s, ";
+	return s.str();
+}
+
+//----------------------------------------------------------------
+
+ConstantTwoZoneSphericalAdvectionField::ConstantTwoZoneSphericalAdvectionField(const Vector3d origin, double shockRadius, double v1, double v2) {
+	setOrigin(origin);
+	setShockRadius(shockRadius);
+	setVWind(v1, v2);
+}
+
+Vector3d ConstantTwoZoneSphericalAdvectionField::getField(const Vector3d &position) const {
+	Vector3d Pos = position-origin;
+	return getVWind(Pos.getR()) * Pos.getUnitVector();
+}
+
+double ConstantTwoZoneSphericalAdvectionField::getDivergence(const Vector3d &position) const {
+	double R = (position-origin).getR();
+	if (R < shockRadius)
+		return 2*getVWind(R)/R;
+	else
+		0;
+}
+
+void ConstantTwoZoneSphericalAdvectionField::setOrigin(const Vector3d o) {
+	origin=o;
+	return;
+}
+
+void ConstantTwoZoneSphericalAdvectionField::setVWind(double vel1, double vel2) {
+	v1 = vel1;
+	v2 = vel2;
+	return;
+}
+
+void ConstantTwoZoneSphericalAdvectionField::setShockRadius(double radius) {
+	shockRadius = radius;
+	return;
+}
+
+Vector3d ConstantTwoZoneSphericalAdvectionField::getOrigin() const {
+	return origin;
+}
+
+double ConstantTwoZoneSphericalAdvectionField::getVWind(double R) const {
 	double shockRadius = getShockRadius();
 	if (R < shockRadius)
 		return v1;
@@ -90,19 +135,17 @@ double ConstantSphericalAdvectionField::getVWind(double R) const {
 		return v2 * pow(shockRadius / R, 2);
 }
 
-double ConstantSphericalAdvectionField::getShockRadius() const {
+double ConstantTwoZoneSphericalAdvectionField::getShockRadius() const {
 	return shockRadius;
 }
 
-std::string ConstantSphericalAdvectionField::getDescription() const {
+std::string ConstantTwoZoneSphericalAdvectionField::getDescription() const {
 	std::stringstream s;
 	s << "Origin: " << origin / kpc  << " kpc, ";
 	s << "Shock Radius: " << shockRadius / pc << "pc, ";
 	s << "v1 | v2: " << v1 << v2 << " m/s, ";
 	return s.str();
 }
-
-
 
 //----------------------------------------------------------------
 

@@ -782,6 +782,29 @@ void SourceDirectedEmission::setDescription() {
 }
 
 // ----------------------------------------------------------------------------
+SourceIsotropicOutwardOnSphere::SourceIsotropicOutwardOnSphere(const Vector3d &center, double radius, bool inward) :
+		center(center), radius(radius) {
+	this->inward = inward;
+	setDescription();
+}
+
+void SourceIsotropicOutwardOnSphere::prepareParticle(ParticleState& particle) const {
+	Random &random = Random::instance();
+	Vector3d normalVector = random.randVector();
+	particle.setPosition(center + normalVector * radius);
+	double sign = inward ? -1 : 1; // negative (positive) vector for inward (outward) directed emission
+	particle.setDirection(Vector3d(0, 0, 0) + sign * random.randConeVector(normalVector, M_PI / 2));
+}
+
+void SourceIsotropicOutwardOnSphere::setDescription() {
+	std::stringstream ss;
+	ss << "SourceIsotropicOutwardOnSphere: Random position and direction on a Sphere with center ";
+	ss << center / kpc << " kpc and ";
+	ss << radius / kpc << " kpc radius\n";
+	description = ss.str();
+}
+
+// ----------------------------------------------------------------------------
 SourceLambertDistributionOnSphere::SourceLambertDistributionOnSphere(const Vector3d &center, double radius, bool inward) :
 		center(center), radius(radius) {
 	this->inward = inward;

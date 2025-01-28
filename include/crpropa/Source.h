@@ -592,6 +592,27 @@ public:
 	void setDescription();
 };
 
+
+/**
+ @class SourceIsotropicOutwardOnSphere
+ @brief Uniform random position on a sphere with isotropic distributed directions.in one hemisphere (default: outward)
+ */
+class SourceIsotropicOutwardOnSphere: public SourceFeature {
+	Vector3d center;	// center of the sphere
+	double radius;		// radius of the sphere
+	bool inward;		// if true, direction point inwards
+public:
+	/** Constructor
+	 @param center		vector containing the coordinates of the center of the sphere
+	 @param radius		radius of the sphere
+	 @param inward		if true, the directions point inwards
+	 */
+	SourceIsotropicOutwardOnSphere(const Vector3d &center, double radius, bool inward);
+	void prepareParticle(ParticleState &particle) const;
+	void setDescription();
+};
+
+
 /**
  @class SourceLambertDistributionOnSphere
  @brief Uniform random position on a sphere with isotropic Lamberts distributed directions.

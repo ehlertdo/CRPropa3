@@ -19,7 +19,7 @@ const double bs[] = { 2825. / 27648., 0., 18575. / 48384., 13525.
 
 
 DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, double tolerance,
-				 double minStep, double maxStep, double epsilon) :
+				 double minStep, double maxStep, double epsilon, double Rdiff) :
 	minStep(0)
 {
   	setMagneticField(magneticField);
@@ -27,11 +27,12 @@ DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, double toleranc
   	setMinimumStep(minStep);
   	setTolerance(tolerance);
   	setEpsilon(epsilon);
+  	setRdiff(Rdiff);
   	setScale(1.);
   	setAlpha(1./3.);
 	}
 
-DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, ref_ptr<AdvectionField> advectionField, double tolerance, double minStep, double maxStep, double epsilon) :
+DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, ref_ptr<AdvectionField> advectionField, double tolerance, double minStep, double maxStep, double epsilon, double Rdiff) :
   	minStep(0)
 {
 	setMagneticField(magneticField);
@@ -40,6 +41,7 @@ DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, ref_ptr<Advecti
 	setMinimumStep(minStep);
 	setTolerance(tolerance);
 	setEpsilon(epsilon);
+	setRdiff(Rdiff);
 	setScale(1.);
 	setAlpha(1./3.);
   	}
@@ -259,7 +261,7 @@ void DiffusionSDE::driftStep(const Vector3d &pos, Vector3d &linProp, double h) c
 
 void DiffusionSDE::calculateBTensor(double r, double BTen[], Vector3d pos, Vector3d dir, double z) const {
 
-    double DifCoeff = scale * 6.1e24 * pow((std::abs(r) / 4.0e9), alpha);
+    double DifCoeff = scale * 6.1e24 * (pow((std::abs(r) / Rdiff), alpha) + 1 / 2. * (std::abs(r) / Rdiff) + 2 / 3. * pow((std::abs(r) / Rdiff), 2));
     BTen[0] = pow( 2  * DifCoeff, 0.5);
     BTen[4] = pow(2 * epsilon * DifCoeff, 0.5);
     BTen[8] = pow(2 * epsilon * DifCoeff, 0.5);
@@ -295,6 +297,14 @@ void DiffusionSDE::setEpsilon(double e) {
 		throw std::runtime_error(
 				"DiffusionSDE: epsilon not in range 0-1");
 	epsilon = e;
+}
+
+
+void DiffusionSDE::setRdiff(double Rdiff) {
+	if (Rdiff < 0)
+		throw std::runtime_error(
+				"DiffusionSDE: Rdiff < 0");
+	Rdiff = Rdiff;
 }
 
 
@@ -334,6 +344,10 @@ double DiffusionSDE::getTolerance() const {
 
 double DiffusionSDE::getEpsilon() const {
 	return epsilon;
+}
+
+double DiffusionSDE::getRdiff() const {
+	return Rdiff;
 }
 
 double DiffusionSDE::getAlpha() const {

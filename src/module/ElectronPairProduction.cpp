@@ -109,7 +109,7 @@ void ElectronPairProduction::process(Candidate *c) const {
 		return; // only nuclei
 
 	// radial dependence of the photon field
-	double field_radial_scaling = photonField->getRadialScaling(c->current.getPosition().getR());
+	double field_radial_scaling = photonField->getRadialScaling(c->current.getPosition().getR(), c->current.getPosition().getTheta());
 
 	double lf = c->current.getLorentzFactor();
 	double z = c->getRedshift();

@@ -217,7 +217,7 @@ void EMInverseComptonScattering::process(Candidate *candidate) const {
 		return;
 
 	// radial dependence of the photon field
-	double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR());
+	double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR(), candidate->current.getPosition().getTheta());
 
 	// interaction rate
 	double rate = interpolate(E, tabEnergy, tabRate);

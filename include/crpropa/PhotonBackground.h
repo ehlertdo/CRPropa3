@@ -58,7 +58,7 @@ public:
 	virtual double getOuterRadius() const {
 		return this->outerRadius;
 	}
-	virtual double getRadialScaling(double R) const {
+	virtual double getRadialScaling(double R, double theta) const {
 		return 1.;
 	}
 
@@ -94,7 +94,7 @@ public:
 	bool hasScaleRadius() const;
 	double getScaleRadius() const;
 	double getOuterRadius() const;
-	double getRadialScaling(double R) const;
+	double getRadialScaling(double R, double theta) const;
 	double getPhotonDensity(double ePhoton, double z = 0.) const;
 	double getRedshiftScaling(double z) const;
 	double getMinimumPhotonEnergy(double z) const;

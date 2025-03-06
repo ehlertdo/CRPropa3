@@ -48,7 +48,7 @@ double TabularPhotonField::getOuterRadius() const {
 }
 
 
-double TabularPhotonField::getRadialScaling(double R) const {
+double TabularPhotonField::getRadialScaling(double R, double theta) const {
 	// radial dependence of the photon field
 	double field_radial_scaling = 1;
 	if (this->hasScaleRadius()) {
@@ -57,14 +57,17 @@ double TabularPhotonField::getRadialScaling(double R) const {
 		// emission radius of photon field
 		double outerRadius = this->getOuterRadius();
 
-		// update scaleRadius if within radius of emitter
-		if (scaleRadius < outerRadius)
-			scaleRadius = outerRadius;
-		// radius scaling
-		if (R < outerRadius)
-			field_radial_scaling = std::pow(scaleRadius / outerRadius, 2);
-		else
-			field_radial_scaling = std::pow(scaleRadius / R, 2);
+		// apply dust-ring scaling ==========
+		// undo pre-scaling to scaleRadius
+		double R_init = scaleRadius;
+		double theta_init = 0;
+		double divisor = std::sqrt(std::pow(R_init, 4) + 2 * std::pow(R_init * outerRadius, 2) * std::cos(2 * theta_init) + std::pow(outerRadius, 4));
+		double dividend = 2 * std::atan(std::tan(- M_PI / 2) * (std::pow(R_init, 2) + 2 * R_init * outerRadius * std::sin(theta_init) + std::pow(outerRadius, 2)) / divisor);
+		field_radial_scaling = - divisor / dividend;
+		// scale to correct radius
+		divisor = divisor = std::sqrt(std::pow(R, 4) + 2 * std::pow(R * outerRadius, 2) * std::cos(2 * theta) + std::pow(outerRadius, 4));
+		dividend = 2 * std::atan(std::tan(- M_PI / 2) * (std::pow(R, 2) + 2 * R * outerRadius * std::sin(theta) + std::pow(outerRadius, 2)) / divisor);
+		field_radial_scaling *= - dividend / divisor;
 	}
 	return field_radial_scaling;
 }

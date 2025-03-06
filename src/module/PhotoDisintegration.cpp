@@ -175,7 +175,7 @@ void PhotoDisintegration::process(Candidate *candidate) const {
 		rate *= pow_integer<2>(1 + z) * photonField->getRedshiftScaling(z); // cosmological scaling, rate per comoving distance
 
 		// radial dependence of the photon field
-		double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR());
+		double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR(), candidate->current.getPosition().getTheta());
 		rate *= field_radial_scaling;
 
 		// check if interaction occurs in this step

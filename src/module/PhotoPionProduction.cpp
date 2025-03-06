@@ -174,7 +174,7 @@ void PhotoPionProduction::process(Candidate *candidate) const {
 		double gamma = candidate->current.getLorentzFactor();
 
 		// radial dependence of the photon field
-		double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR());
+		double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR(), candidate->current.getPosition().getTheta());
 
 		// check for interaction on protons
 		if (Z > 0) {
@@ -488,7 +488,7 @@ double PhotoPionProduction::probEps(Candidate *candidate, double eps, bool onPro
 	double photonDensity = photonField->getPhotonDensity(eps * eV, z) * ccm / eps;
 
 	// radial dependence of the photon field
-	double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR());
+	double field_radial_scaling = photonField->getRadialScaling(candidate->current.getPosition().getR(), candidate->current.getPosition().getTheta());
 	photonDensity *= field_radial_scaling;
 	// ----------------------------------------------------------
 
